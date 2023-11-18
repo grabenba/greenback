@@ -8,6 +8,6 @@ const app = express();
 app.use(json());
 app.use(logRequest);
 
-app.all('/', mainRouter);
+app.use('/', mainRouter);
 
 export default app;

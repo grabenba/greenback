@@ -1,33 +1,67 @@
 import firestore from './database';
 import { getSHA512OfPassword } from '../utils/password-hasher';
+import { getToken } from '../utils/jwt';
 
 abstract class UserModel {
 	static async createNew(userData: any) {
 		const { fullname, email, password } = userData;
 		const hashedPassword = getSHA512OfPassword(password);
 
-		const res = await firestore.collection('users').add({
+		const newUser = await firestore.collection('users').add({
 			fullname,
 			email,
-			password: hashedPassword,
 			movements: [],
 			balance: 0,
 		});
 
-		return { message: `User ${fullname} created successfully`, id: res.id };
-	}
-
-	static async getAll() {
-		const result = [] as any;
-		const usersRef = firestore.collection('users');
-		const snapshot = await usersRef.get();
-
-		snapshot.forEach((doc) => {
-			const { fullname, email } = doc.data();
-			result.push({ fullname, email });
+		await firestore.collection('auths').doc(newUser.id).set({
+			password: hashedPassword,
 		});
 
-		return result;
+		return {
+			message: `User ${fullname} created successfully`,
+			id: newUser.id,
+		};
+	}
+
+	static async getInfo(userId: string) {
+		const userSnapshot = await firestore
+			.collection('users')
+			.doc(userId)
+			.get();
+		const userInfo = userSnapshot.data();
+
+		return { userInfo };
+	}
+
+	static async login(userCredentials: any) {
+		const { email, password } = userCredentials;
+
+		const userQuerySnapshot = await firestore
+			.collection('users')
+			.where('email', '==', email)
+			.get();
+
+		const userId = userQuerySnapshot.docs[0].id;
+
+		const auth = (await firestore
+			.collection('auths')
+			.doc(userId)
+			.get()) as any;
+		const dbHashedPassword = auth.data().password;
+
+		const hashedPassword = getSHA512OfPassword(password);
+
+		if (hashedPassword === dbHashedPassword) {
+			const token = getToken({ email, userId });
+
+			return {
+				message: 'User logged successfully!',
+				token,
+			};
+		}
+
+		return { error: 'Wrong credentials' };
 	}
 }
 

@@ -4,9 +4,8 @@ import MovementModel from '../models/movement';
 abstract class MovementController {
 	static async createNew(req: Request, res: Response) {
 		// VALIDAR DATOS CON ZOD
-		const validatedData = req.body;
-
-		console.log(req.body);
+		const { userId } = req.params;
+		const validatedData = { ...req.body, userId };
 
 		const response = await MovementModel.createNew(validatedData);
 		return res.status(201).json(response);

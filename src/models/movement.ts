@@ -2,9 +2,9 @@ import firestore from './database';
 
 abstract class MovementModel {
 	static async createNew(movementData: any) {
-		const { userId, amount, tags, transactionInfo } = movementData;
+		const { userId, amount, tags, transactionType } = movementData;
 		const timestamp = new Date().toISOString();
-		const movement = { timestamp, transactionInfo, amount, tags };
+		const movement = { timestamp, transactionType, amount, tags };
 
 		const userRef = firestore.collection('users').doc(userId);
 		const userSnapshot = await userRef.get();
@@ -12,8 +12,8 @@ abstract class MovementModel {
 		const { movements } = userData as any;
 		let { balance } = userData as any;
 
-		if (transactionInfo === 'income') balance += amount;
-		if (transactionInfo === 'outcome') balance -= amount;
+		if (transactionType === 'income') balance += amount;
+		if (transactionType === 'outcome') balance -= amount;
 
 		movements.push(movement);
 

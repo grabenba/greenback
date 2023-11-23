@@ -11,7 +11,7 @@ abstract class UserController {
 	}
 
 	static async getInfo(req: Request, res: Response) {
-		const { userId } = req.params;
+		const { userId } = res.locals.userData;
 		const user = await UserModel.getInfo(userId);
 
 		return res.json(user);

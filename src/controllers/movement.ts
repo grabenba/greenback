@@ -4,7 +4,7 @@ import MovementModel from '../models/movement';
 abstract class MovementController {
 	static async createNew(req: Request, res: Response) {
 		// VALIDAR DATOS CON ZOD
-		const { userId } = req.params;
+		const { userId } = res.locals.userData;
 		const validatedData = { ...req.body, userId };
 
 		const response = await MovementModel.createNew(validatedData);
@@ -12,7 +12,7 @@ abstract class MovementController {
 	}
 
 	static async getAll(req: Request, res: Response) {
-		const { userId } = req.params;
+		const { userId } = res.locals.userData;
 		const userMovements = await MovementModel.getAll(userId);
 
 		return res.json({ accountInfo: userMovements });

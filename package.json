@@ -1,7 +1,7 @@
 {
 	"name": "backend-14-m6-c11-greenback",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Authentication system",
 	"main": "index.js",
 	"scripts": {
 		"dev": "tsnd --clear ./src/dev.ts",
@@ -9,7 +9,7 @@
 		"start": "node ./dist/index.js"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "ADA",
 	"license": "ISC",
 	"devDependencies": {
 		"@types/express": "4.17.21",

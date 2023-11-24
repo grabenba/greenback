@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
 import UserModel from '../models/user';
+import { validateUser, validatePartialUser } from '../schemas/user';
 
 abstract class UserController {
 	static async createNew(req: Request, res: Response) {
-		// VALIDAR DATOS CON ZOD
-		const validatedData = req.body;
+		const validatedData = validateUser(req.body);
 
-		const response = await UserModel.createNew(validatedData);
+		if (!validatedData.success)
+			return res.status(400).json(validatedData.error);
+
+		const response = await UserModel.createNew(validatedData.data);
 		return res.status(201).json(response);
 	}
 
@@ -18,7 +21,12 @@ abstract class UserController {
 	}
 
 	static async login(req: Request, res: Response) {
-		const { email, password } = req.body; // VALIDAR CON ZOD
+		const validatedData = validatePartialUser(req.body);
+
+		if (!validatedData.success)
+			return res.status(400).json(validatedData.error);
+
+		const { email, password } = validatedData.data as any;
 		const user = await UserModel.login({ email, password });
 
 		return res.json(user);

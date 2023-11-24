@@ -1,13 +1,20 @@
 import { Request, Response } from 'express';
 import MovementModel from '../models/movement';
+import { validateMovement } from '../schemas/movement';
 
 abstract class MovementController {
 	static async createNew(req: Request, res: Response) {
-		// VALIDAR DATOS CON ZOD
-		const { userId } = res.locals.userData;
-		const validatedData = { ...req.body, userId };
+		const validatedData = validateMovement(req.body);
 
-		const response = await MovementModel.createNew(validatedData);
+		if (!validatedData.success)
+			return res.status(400).json(validatedData.error);
+
+		const { userId } = res.locals.userData;
+
+		const response = await MovementModel.createNew({
+			...validatedData.data,
+			userId,
+		});
 		return res.status(201).json(response);
 	}
 

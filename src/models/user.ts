@@ -1,11 +1,12 @@
 import firestore from './database';
-import { getSHA512OfPassword } from '../utils/password-hasher';
+import { getSHA512OfPassword, getSalt } from '../utils/password-hasher';
 import { getToken } from '../utils/jwt';
 
 abstract class UserModel {
 	static async createNew(userData: any) {
 		const { fullname, email, password } = userData;
-		const hashedPassword = getSHA512OfPassword(password);
+		const salt = getSalt();
+		const hashedPassword = getSHA512OfPassword(password, salt);
 
 		const newUser = await firestore.collection('users').add({
 			fullname,
@@ -14,9 +15,12 @@ abstract class UserModel {
 			balance: 0,
 		});
 
-		await firestore.collection('auths').doc(newUser.id).set({
-			password: hashedPassword,
-		});
+		await firestore
+			.collection('auths')
+			.doc(newUser.id)
+			.set({
+				password: `${salt}:${hashedPassword}`,
+			});
 
 		return {
 			message: `User ${fullname} created successfully`,
@@ -48,9 +52,10 @@ abstract class UserModel {
 			.collection('auths')
 			.doc(userId)
 			.get()) as any;
-		const dbHashedPassword = auth.data().password;
 
-		const hashedPassword = getSHA512OfPassword(password);
+		const [salt, dbHashedPassword] = auth.data().password.split(':');
+
+		const hashedPassword = getSHA512OfPassword(password, salt);
 
 		if (hashedPassword === dbHashedPassword) {
 			const token = getToken({ email, userId });

@@ -1,6 +1,10 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
-const getSHA512OfPassword = (password: string) =>
-	createHash('sha512').update(password).digest('hex');
+const getSalt = () => randomBytes(18).toString('hex');
 
-export { getSHA512OfPassword };
+const getSHA512OfPassword = (password: string, salt: string) =>
+	createHash('sha512')
+		.update(salt + password)
+		.digest('hex');
+
+export { getSHA512OfPassword, getSalt };
